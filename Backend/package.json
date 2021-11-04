@@ -34,6 +34,6 @@
     "paypal-rest-sdk": "^1.8.1",
     "react-chartjs-2": "^3.0.3",
     "storybook": "^6.3.0",
-    "validator": "^13.6.0"
+    "validator": "^13.7.0"
   }
 }

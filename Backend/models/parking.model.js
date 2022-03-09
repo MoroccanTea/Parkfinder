@@ -6,7 +6,7 @@ const Parking = model('Parking', {
         type: String,
         required: true,
     },
-    adress: {
+    address: {
         type: String,
         required: true
     },
@@ -36,7 +36,7 @@ const Parking = model('Parking', {
        required: true,
    },
 
-   Reservation_Price:{
+   Parking_Price:{
        type:Number,
        required:true,
    },

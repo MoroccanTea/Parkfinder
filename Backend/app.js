@@ -1,6 +1,7 @@
 require('dotenv').config();
 var createError = require('http-errors');
 var express = require('express');
+const { default: AdminBro } = require('admin-bro');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var helmet = require('helmet');
@@ -10,6 +11,10 @@ const paypal = require('paypal-rest-sdk');
 var cors = require('cors');
 var session = require('express-session')
 const rateLimit = require("express-rate-limit");
+const options = require('./routes/admin.options');
+const buildAdminRouter = require('./routes/admin.router');
+
+
 paypal.configure({
     'mode': 'sandbox', 
     'client_id': 'Ady83tUxF6eSwVZ7m9lB5ll7FkAK0cqxy3FketIDOFw0Cv4qMCBtywNZlOJPchtIo67CaFuaukVubT5r',
@@ -28,14 +33,19 @@ var indexRouter = require('./routes/index.router');
 var userRouter = require("./routes/user.router");
 var parkingRouter = require("./routes/parking.router");
 var reservationRouter = require("./routes/reservation.router");
-var adminRouter = require("./routes/admin.router");
+//var adminRouter = require("./routes/admin.router");
 var paypalRouter = require("./routes/paypal.router");
+var scannerRouter = require("./routes/scanner.router");
+
 
 var app = express();
 
 // view engine setup
+const admin = new AdminBro(options);
+const router = buildAdminRouter(admin);
 
-app.use('/admin', adminRouter);
+app.use(admin.options.rootPath, router);
+//app.use('/admin', adminRouter);
 app.use(express.json());
 
 
@@ -73,7 +83,7 @@ app.use('/user', userRouter);
 app.use('/parking', parkingRouter);
 app.use('/reservation', reservationRouter);
 app.use('/pay', paypalRouter);
-
+app.use('/scanner' , scannerRouter )
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

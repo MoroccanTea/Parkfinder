@@ -33,12 +33,6 @@ const User = model('User', {
         default: 0,
     },
 
-    Admin:{
-        type: Boolean,
-        required: true,
-        default: false,
-    },
-
     Banned:{
         type: Boolean,
         required: true,

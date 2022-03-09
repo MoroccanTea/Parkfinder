@@ -8,8 +8,6 @@ router.get('/info/:_id',userController.getuserInfo)
 router.get('/logout',userController.logout)
 router.put('/ban/:_id', userController.Ban);
 router.put('/unban/:_id', userController.unBan);
-router.put('/admin/:_id', userController.Admin);
-router.put('/revoke/:_id', userController.RevokeAdmin);
 router.put('/info/:_id', userController.updateUser);
 router.put('/balance/:_id', userController.updateUserBalance);
 router.get('/list', userController.listUsers);

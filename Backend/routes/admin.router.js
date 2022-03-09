@@ -1,14 +1,23 @@
 const AdminBro = require('admin-bro');
-const AdminBroExpress = require('admin-bro-expressjs');
+const buildAuthenticatedRouter  = require('admin-bro-expressjs');
+const express = require('express');
+const argon2 = require('argon2');
 const AdminBroMongoose = require('admin-bro-mongoose');
+const session = require('express-session');
 const User = require('../models/user.model');
 const Parking = require('../models/parking.model');
 const Reservation = require('../models/reservation.model');
 const mongoose = require('mongoose');
+const MongoStore = require('connect-mongo')(session);
 
 
+const { Company } = require('../models/company.model');
+
+/**
+ * @param {AdminBro} admin
+ * @return {express.Router} router
+ */
 AdminBro.registerAdapter(AdminBroMongoose);
-
 
 const locale = {
   translations: {
@@ -25,79 +34,25 @@ const adminBro = new AdminBro({
   rootPath: '/admin',
   locale,
   dashboard:{ component: AdminBro.bundle('../dashboardModules/Dashboard') },
-  resources: [
-    {
-      resource: User,
-      options: {
-        properties: {
-          Password: {
-            isVisible: false,
-          }
-        },
-        navigation:{
-          icon: 'User',
-          name: null,
-          },
-      },
-      
-    },
-    {
-      resource: Parking,
-      options: {
-        properties: {
-          Description: {
-            type: 'richtext',
-          }
-        },
-        navigation:{
-          icon: 'Location',
-          name: null,
-          },
-      }
-    },
-    {
-      resource: Reservation,
-      options: {
-        navigation:{
-          icon: 'Ticket',
-          name: null,
-          },
-      }
-    }
-  ],
-  branding: {
-    companyName: 'Parkfinder',
-    logo: 'https://www.parkfinder.tk/images/parkfinder-contrast.png',
-    softwareBrothers: false,
-    favicon: "https://parkfinder.tk/images/fleche.ico",
-    theme:{
-      colors:{
-        primary100: '#f2ca00',
-        primary60: '#000',
-        primary20: '#fff',
-        hoverBg: '#000',
-      },
-      font: '\'Poppins\', sans-serif',
-    }
-  }
 });
 
-const ADMIN = {
-  email: process.env.ADMIN_EMAIL || 'admin@parkinder.tk',
-  password: process.env.ADMIN_PASSWORD || 'Sofitel69',
-}
+const buildAdminRouter = (admin) => {
+  const router = buildAuthenticatedRouter.buildAuthenticatedRouter(admin, {
+    cookieName: 'admin-bro',
+    cookiePassword: 'superlongandcomplicatedname',
+    authenticate: async (email, password) => {
+      const company = await Company.findOne({ email });
+      if (company && await argon2.verify(company.encryptedPassword, password)) {
+        return company.toJSON();
+      }
+      return null;
+    },
+  }, null, {
+    resave: false,
+    saveUninitialized: true,
+    store: new MongoStore({ mongooseConnection: mongoose.connection }),
+  });
+  return router;
+};
 
-const router = AdminBroExpress.buildAuthenticatedRouter(adminBro, {
-  cookieName: process.env.ADMIN_COOKIE_NAME || 'admin-bro',
-  cookiePassword: process.env.ADMIN_COOKIE_PASS || 'some-super-sensitive-password',
-  authenticate: async (email, password) => {
-    if (ADMIN.password === password && ADMIN.email === email) {
-      return ADMIN;
-    }
-    return null;
-
-  }
-});
-
-
-module.exports = router;
+module.exports = buildAdminRouter;

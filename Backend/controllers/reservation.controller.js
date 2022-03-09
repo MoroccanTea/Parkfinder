@@ -1,4 +1,7 @@
+const QRCode =  require("qrcode");
 const Reservation = require('../models/reservation.model');
+const nodemailer = require('../configs/nodemailer.config');
+const User = require("../models/user.model");
 const Parking = require("../models/parking.model")
 function addReservation(req, res) {
     var newReservation = new Reservation({
@@ -9,6 +12,25 @@ function addReservation(req, res) {
         carNumber: req.body.carNumber,
     }).save((err, result) => {
         if (result) {
+            const generateQR = async text => {
+                try {
+                    await QRCode.toFile('./configs/qrcode.png', text);
+                } catch(err){
+                    console.log(err);
+                }
+            }
+            generateQR(JSON.stringify(result._id));
+             User.findById(req.body.User_id, function (err, user) {
+                 if (user) {
+                      nodemailer.sendQRcode(
+                          user.Name,
+                          user.Email, 
+                     );
+                  }
+                  else res.status(500).send(err);
+              });
+            
+
             Parking.findById({ _id: req.body.Parking_id }).exec((err, p) => {
                 if (p) {
                     result.Parking_id = p
@@ -62,10 +84,25 @@ function filterByParking(req, res) {
     });
 };
 
+function annulerReservation(req, res){
+    Reservation.findOneAndUpdate(
+        {_id: req.params._id},
+        {finished: true}).exec((error, result) => {
+            if (result) {
+                res.send("Reservation Cancelled");
+            }
+            else {
+                res.status(500).send('something went wrong')
+            }
+        })
+}
+
+
 module.exports = {
     addReservation: addReservation,
     listReservations: listReservations,
     filterByDate: filterByDate,
     filterByParking: filterByParking,
-    listUserReservations: listUserReservations
-};
+    listUserReservations: listUserReservations,
+    annulerReservation: annulerReservation,
+}; 

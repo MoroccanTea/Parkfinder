@@ -10,7 +10,7 @@
     "admin-bro-expressjs": "^2.1.1",
     "admin-bro-mongoose": "^0.5.2",
     "admin-bro-theme-dark": "^1.0.0",
-    "argon2": "^0.28.2",
+    "argon2": "^0.44.0",
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.18.3",
     "chart.js": "^3.3.2",
